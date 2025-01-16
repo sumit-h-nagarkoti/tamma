@@ -20,22 +20,26 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
 
-      # Install Node.js (if not installed already on the server)
+      # Install Node.js (skip if already installed on EC2)
       - name: Set up Node.js
         uses: actions/setup-node@v2
         with:
-          node-version: '14'  # Adjust to the version you're using
+          node-version: '23'  # Use your installed Node.js version
 
-      # Install dependencies
-      - name: Install dependencies
+      # Install dependencies locally (for GitHub Actions)
+      - name: Install dependencies (GitHub Actions)
         run: npm install
 
       # Deploy to EC2
       - name: Deploy to EC2
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_SSH_USER }}@${{ secrets.EC2_IP }} << 'EOF'
+            # Ensure correct PATH for npm and node
+            echo "export PATH=$PATH:/usr/local/bin" >> ~/.bashrc
+            source ~/.bashrc
+
             # Ensure we're in the correct directory where the app is located
-            cd /home/ubuntu/tamma || exit  # Replace with the correct path where your app is located
+            cd /home/ubuntu/tamma || exit  # Update path if necessary
             git pull origin main || exit  # Pull latest changes from GitHub
             npm install || exit  # Install dependencies
             pm2 restart myapp || pm2 start app.js --name "myapp"  # Restart app using PM2 or start it if it's not running
