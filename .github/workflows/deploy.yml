@@ -29,8 +29,14 @@ jobs:
           nvm use node
           npm install
 
+       # Step 3: List repository files for debugging (optional)
+      - name: List repository files
+        run: |
+          ls -R
+      
+      
       # Deploy to EC2 instance
       - name: Deploy to EC2
         run: |
-          ssh -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_PUBLIC_IP }} "cd /path/to/your/app && git pull origin main && npm install && pm2 restart app.js"
+          ssh -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_PUBLIC_IP }} "cd /tamma/app && git pull origin main && npm install && pm2 restart app.js"
 
