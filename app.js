@@ -11,7 +11,7 @@ const server = http.createServer((req, res) => {
 
 // Specify the port and hostname for the server
 const port = 3000;
-const hostname = '127.0.0.1';
+const hostname = '0.0.0.0'; // Allow external access by binding to all interfaces
 
 // Start the server
 server.listen(port, hostname, () => {
