@@ -20,11 +20,6 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
 
-       # Step 3: List repository files for debugging (optional)
-      - name: List repository files
-        run: |
-          ls -R    
-
       # Install Node.js and dependencies
       - name: Install Node.js and dependencies
         run: |
@@ -40,6 +35,9 @@ jobs:
           nvm install node
           nvm use node
 
+          # Navigate to the correct directory where app.js is located
+          cd tamma || exit  # Ensure you are in the correct directory (replace 'tamma' if needed)
+
           # Install npm dependencies
           npm install
 
@@ -52,8 +50,8 @@ jobs:
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
             [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
-            # Navigate to app directory
-            cd /home/ubuntu/tamma/app.js || exit  # Adjust this path as necessary
+            # Navigate to the app directory on EC2
+            cd /home/ubuntu/tamma || exit  # Adjust this path based on where your app is located on EC2
             git pull origin main || exit  # Pull latest changes from GitHub
             npm install || exit  # Install dependencies
             pm2 restart myapp || pm2 start app.js --name "myapp"  # Restart app using PM2
