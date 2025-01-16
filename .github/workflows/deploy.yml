@@ -1,0 +1,41 @@
+name: Node.js App Deployment
+
+on:
+  push:
+    branches:
+      - main  # Adjust based on your main branch name (e.g., 'master' or 'main')
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Set up SSH agent
+      - name: Set up SSH key
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+
+      # Install Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'  # Adjust to the version you're using
+
+      # Install dependencies
+      - name: Install dependencies
+        run: npm install
+
+      # Deploy to EC2
+      - name: Deploy to EC2
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_SSH_USER }}@${{ secrets.EC2_IP }} << 'EOF'
+            cd /path/to/your-nodejs-app || exit
+            git pull origin main || exit  # Pull latest changes from GitHub
+            npm install || exit           # Install dependencies
+            pm2 restart myapp || pm2 start app.js --name "myapp"  # Restart app using PM2
+          EOF
