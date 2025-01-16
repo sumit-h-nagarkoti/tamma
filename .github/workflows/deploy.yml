@@ -1,46 +1,40 @@
-name: Node.js App Deployment
+name: Deploy to EC2
 
 on:
   push:
     branches:
-      - main  # Adjust based on your main branch name (e.g., 'master' or 'main')
+      - main  # Trigger deployment on push to the main branch
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout the repository
-      - name: Checkout code
-        uses: actions/checkout@v2
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-      # Set up SSH agent
-      - name: Set up SSH key
-        uses: webfactory/ssh-agent@v0.5.3
-        with:
-          ssh-private-key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+    - name: Set up SSH
+      uses: webfactory/ssh-agent@v0.5.3
+      with:
+        ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
 
-      # Install Node.js (skip if already installed on EC2)
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: '23'  # Use your installed Node.js version
+    - name: Install dependencies
+      run: |
+        sudo apt update && sudo apt upgrade -y
+        sudo apt install -y git
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+        source ~/.bashrc
+        nvm install node
+        nvm use node
+        npm install -g pm2
 
-      # Install dependencies locally (for GitHub Actions)
-      - name: Install dependencies (GitHub Actions)
-        run: npm install
-
-      # Deploy to EC2
-      - name: Deploy to EC2
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_SSH_USER }}@${{ secrets.EC2_IP }} << 'EOF'
-            # Ensure correct PATH for npm and node
-            echo "export PATH=$PATH:/usr/local/bin" >> ~/.bashrc
-            source ~/.bashrc
-
-            # Ensure we're in the correct directory where the app is located
-            cd /home/ubuntu/tamma || exit  # Update this path if necessary
-            git pull origin main || exit  # Pull latest changes from GitHub
-            npm install || exit  # Install dependencies
-            pm2 restart myapp || pm2 start app.js --name "myapp"  # Restart app using PM2 or start it if it's not running
-          EOF
+    - name: SSH into EC2 and deploy
+      run: |
+        ssh -o StrictHostKeyChecking=no ec2-user@your-ec2-public-ip << 'EOF'
+          cd /path/to/your/app
+          git pull origin main
+          npm install
+          pm2 stop app.js || true
+          pm2 start app.js
+          pm2 save
+        EOF
