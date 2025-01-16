@@ -30,6 +30,10 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: List repository files
+        run: |
+          ls -R
+          
       # Deploy to EC2
       - name: Deploy to EC2
         run: |
