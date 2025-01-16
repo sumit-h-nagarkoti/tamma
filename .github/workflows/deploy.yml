@@ -1,64 +1,63 @@
-name: Deploy Node.js App to EC2
+name: Deploy Node.js Application to EC2
 
 on:
   push:
     branches:
-      - main  # Trigger deployment on pushing to the 'main' branch
+      - main  # Trigger deployment on push to 'main' branch
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest  # Use the Ubuntu runner
 
     steps:
-      # Checkout the repository
+      # Step 1: Checkout repository
       - name: Checkout code
         uses: actions/checkout@v2
 
-      # Set up SSH agent
-      - name: Set up SSH key
-        uses: webfactory/ssh-agent@v0.5.3
+      # Step 2: Set up SSH and deploy to EC2
+      - name: Set up SSH and deploy to EC2
+        uses: appleboy/ssh-action@v0.1.8
         with:
-          ssh-private-key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            # Update system packages on EC2 instance
+            sudo apt update && sudo apt upgrade -y
 
-        # Step 3: List repository files for debugging (optional)
-      - name: List repository files
-        run: |
-          ls -R
-      
-      
-      # Install Node.js and dependencies
-      - name: Install Node.js and dependencies
-        run: |
-          # Install NVM
-          curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+            # Install Node.js (via NVM)
+            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+            source ~/.bashrc
+            nvm install node
+            nvm use node
 
-          # Load nvm
-          export NVM_DIR="$HOME/.nvm"
-          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-          [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+            # Confirm Node.js and npm installation
+            node -v
+            npm -v
 
-          # Install Node.js using nvm
-          nvm install node
-          nvm use node
+            # Install Git and PM2
+            sudo apt install git -y
+            npm install pm2 -g
 
-          # Navigate to the correct directory where app.js is located
-          cd tamma || exit  # Ensure you are in the correct directory (replace 'tamma' if needed)
+            # Clone or pull the latest changes from the repository
+            if [ ! -d "/home/${{ secrets.EC2_USER }}/tamma" ]; then
+              git clone https://github.com/sumit-h-nagarkoti/tamma.git /home/${{ secrets.EC2_USER }}/tamma
+            else
+              cd /home/${{ secrets.EC2_USER }}/tamma && git pull origin main
+            fi
 
-          # Install npm dependencies
-          npm install
+            # Navigate to the project directory (the 'tamma' directory)
+            cd /home/${{ secrets.EC2_USER }}/tamma
 
-      # Deploy to EC2
-      - name: Deploy to EC2
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_SSH_USER }}@${{ secrets.EC2_IP }} << 'EOF'
-            # Load nvm on EC2
-            export NVM_DIR="$HOME/.nvm"
-            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-            [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+            # Install dependencies
+            npm install
 
-            # Navigate to the app directory on EC2
-            cd /home/ubuntu/tamma || exit  # Adjust this path based on where your app is located on EC2
-            git pull origin main || exit  # Pull latest changes from GitHub
-            npm install || exit  # Install dependencies
-            pm2 restart myapp || pm2 start app.js --name "myapp"  # Restart app using PM2
-          EOF
+            # Start the application with PM2
+            pm2 start app.js --name "tamma-app"
+
+            # Ensure the app is running (Optional: for health check)
+            curl --silent --fail http://0.0.0.0:3000/ || exit 1
+
+            # Save the PM2 process list and setup for auto-start
+            pm2 save
+            pm2 startup
