@@ -39,7 +39,7 @@ jobs:
             source ~/.bashrc
 
             # Ensure we're in the correct directory where the app is located
-            cd /home/ubuntu/tamma || exit  # Update path if necessary
+            cd /home/ubuntu/tamma || exit  # Update this path if necessary
             git pull origin main || exit  # Pull latest changes from GitHub
             npm install || exit  # Install dependencies
             pm2 restart myapp || pm2 start app.js --name "myapp"  # Restart app using PM2 or start it if it's not running
