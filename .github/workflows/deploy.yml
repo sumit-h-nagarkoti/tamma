@@ -25,7 +25,7 @@ jobs:
         run: |
           ls -R
 
-      # Step 4: Check if 'myapp_old' exists and delete it if found
+      # Step 4: Check if 'myapp_old' exists and delete it if found.
       - name: Check and delete myapp_old folder if exists
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@13.51.178.128 "if [ -d '/var/www/myapp_old' ]; then sudo rm -rf /var/www/myapp_old; fi"
