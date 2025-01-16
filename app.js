@@ -15,5 +15,5 @@ const hostname = '0.0.0.0'; // Allow external access by binding to all interface
 
 // Start the server
 server.listen(port, hostname, () => {
-  console.log(`Server running at http://${hostname}:${port}/`);
+  console.log(`Updated Server running at http://${hostname}:${port}/`);
 });
