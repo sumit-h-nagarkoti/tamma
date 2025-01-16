@@ -3,7 +3,7 @@ name: Deploy Node.js Application to EC2
 on:
   push:
     branches:
-      - main  # Trigger deployment on push to 'main' branch
+      - main  # Trigger deployment on push to the 'main' branch
 
 jobs:
   deploy:
@@ -21,7 +21,17 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22  # Ensure the port is correct
           script: |
+            # Decode the SSH key from base64 and save it to a temporary file
+            echo "${{ secrets.EC2_SSH_KEY }}" | base64 --decode > /tmp/vm3key.pem
+
+            # Change the file permissions to make it secure
+            chmod 400 /tmp/vm3key.pem
+
+            # Set the SSH key path
+            export SSH_KEY_PATH="/tmp/vm3key.pem"
+
             # Update system packages on EC2 instance
             sudo apt update && sudo apt upgrade -y
 
@@ -46,7 +56,7 @@ jobs:
               cd /home/${{ secrets.EC2_USER }}/tamma && git pull origin main
             fi
 
-            # Navigate to the project directory (the 'tamma' directory)
+            # Navigate to the project directory
             cd /home/${{ secrets.EC2_USER }}/tamma
 
             # Install dependencies
