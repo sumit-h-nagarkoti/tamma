@@ -20,6 +20,12 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
 
+        # Step 3: List repository files for debugging (optional)
+      - name: List repository files
+        run: |
+          ls -R
+      
+      
       # Install Node.js and dependencies
       - name: Install Node.js and dependencies
         run: |
