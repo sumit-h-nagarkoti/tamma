@@ -30,17 +30,13 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: List repository files
-        run: |
-          ls -R
-          
       # Deploy to EC2
       - name: Deploy to EC2
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_SSH_USER }}@${{ secrets.EC2_IP }} << 'EOF'
-            cd /home/ubuntu/myapp || exit  # Update this path to your app's correct directory
+            # Ensure we're in the correct directory where the app is located
+            cd /home/ubuntu/tamma || exit  # Replace with the correct path where your app is located
             git pull origin main || exit  # Pull latest changes from GitHub
             npm install || exit  # Install dependencies
-            pm2 restart myapp || pm2 start app.js --name "myapp"  # Restart app using PM2
+            pm2 restart myapp || pm2 start app.js --name "myapp"  # Restart app using PM2 or start it if it's not running
           EOF
-
