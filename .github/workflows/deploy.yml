@@ -45,12 +45,12 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@13.49.57.246 "cd /var/www/myapp && git clone https://github.com/sumit-h-nagarkoti/tamma.git"
 
-      # # Step 8: Install dependencies and PM2
-      # - name: Install dependencies and PM2
-      #   run: |
-      #     ssh -o StrictHostKeyChecking=no ubuntu@13.49.57.246 "cd /var/www/myapp/tamma && npm install -g pm2 && npm install"
+      # Step 8: Install dependencies and PM2
+      - name: Install dependencies and PM2
+        run: |
+          ssh -o StrictHostKeyChecking=no ubuntu@13.49.57.246 "cd /var/www/myapp/tamma && npm install -g pm2 && npm install"
 
-      # Step 9: Stop the PM2 app if running
+      # Step 9: Stop the app using PM2
       - name: Stop the app using PM2
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@13.49.57.246 "cd /var/www/myapp/tamma && pm2 stop my-app || true"
