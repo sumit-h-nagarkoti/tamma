@@ -11,32 +11,50 @@ jobs:
 
     steps:
       # Checkout the repository
-      - name: Checkout Repository
+      - name: Checkout code
         uses: actions/checkout@v2
 
-      # Set up SSH
-      - name: Set up SSH
+      # Set up SSH agent
+      - name: Set up SSH key
         uses: webfactory/ssh-agent@v0.5.3
         with:
-          ssh-private-key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}  # SSH private key as GitHub Secret
-
-      # Install dependencies (Node.js, npm)
-      - name: Install Dependencies
-        run: |
-          curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
-          source ~/.bashrc
-          nvm install node
-          nvm use node
-          npm install
+          ssh-private-key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
 
        # Step 3: List repository files for debugging (optional)
       - name: List repository files
         run: |
-          ls -R
-      
-      
-      # Deploy to EC2 instance
+          ls -R    
+
+      # Install Node.js and dependencies
+      - name: Install Node.js and dependencies
+        run: |
+          # Install NVM
+          curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+
+          # Load nvm
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+          [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+          # Install Node.js using nvm
+          nvm install node
+          nvm use node
+
+          # Install npm dependencies
+          npm install
+
+      # Deploy to EC2
       - name: Deploy to EC2
         run: |
-          ssh -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_PUBLIC_IP }} "cd /tamma/app && git pull origin main && npm install && pm2 restart app.js"
+          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_SSH_USER }}@${{ secrets.EC2_IP }} << 'EOF'
+            # Load nvm on EC2
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+            [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
+            # Navigate to app directory
+            cd /home/ubuntu/tamma/app.js || exit  # Adjust this path as necessary
+            git pull origin main || exit  # Pull latest changes from GitHub
+            npm install || exit  # Install dependencies
+            pm2 restart myapp || pm2 start app.js --name "myapp"  # Restart app using PM2
+          EOF
