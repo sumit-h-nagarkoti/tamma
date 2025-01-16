@@ -10,31 +10,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-    - name: Set up SSH
-      uses: webfactory/ssh-agent@v0.5.3
-      with:
-        ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
 
-    - name: Install dependencies
-      run: |
-        sudo apt update && sudo apt upgrade -y
-        sudo apt install -y git
-        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
-        source ~/.bashrc
-        nvm install node
-        nvm use node
-        npm install -g pm2
+      - name: Add EC2 host to known hosts
+        run: |
+          ssh-keyscan -H 13.61.188.176 >> ~/.ssh/known_hosts
 
-    - name: SSH into EC2 and deploy
-      run: |
-        ssh -o StrictHostKeyChecking=no ec2-user@your-ec2-public-ip << 'EOF'
-          cd /path/to/your/app
-          git pull origin main
-          npm install
-          pm2 stop app.js || true
-          pm2 start app.js
-          pm2 save
-        EOF
+      - name: Deploy to EC2
+        run: |
+          ssh -o StrictHostKeyChecking=no ubuntu@13.61.188.176 << 'EOF'
+            cd /path/to/your/app
+            git pull origin main
+            npm install
+            pm2 restart app.js || pm2 start app.js
+            pm2 save
+          EOF
