@@ -45,20 +45,20 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@13.49.57.246 "cd /var/www/myapp && git clone https://github.com/sumit-h-nagarkoti/tamma.git"
 
-      # Step 8: Install Node.js and PM2 with sudo for proper permissions
-      - name: Install Node.js and PM2
+       # Step 8: Install Node.js and PM2 locally
+      - name: Install Node.js and PM2 locally
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@13.49.57.246 "curl -sL https://deb.nodesource.com/setup_16.x | sudo -E bash -"
           ssh -o StrictHostKeyChecking=no ubuntu@13.49.57.246 "sudo apt-get install -y nodejs"
-          ssh -o StrictHostKeyChecking=no ubuntu@13.49.57.246 "sudo npm install -g pm2"
-          ssh -o StrictHostKeyChecking=no ubuntu@13.49.57.246 "cd /var/www/myapp/tamma && sudo npm install"
+          ssh -o StrictHostKeyChecking=no ubuntu@13.49.57.246 "cd /var/www/myapp/tamma && npm install pm2 --save && npm install"
 
-      # Step 9: Stop the app using PM2
+
+       # Step 9: Stop the app using PM2 (local)
       - name: Stop the app using PM2
         run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@13.49.57.246 "cd /var/www/myapp/tamma && pm2 stop my-app || true"
+          ssh -o StrictHostKeyChecking=no ubuntu@13.49.57.246 "cd /var/www/myapp/tamma && ./node_modules/.bin/pm2 stop my-app || true"
 
-      # Step 10: Start the app with PM2
+      # Step 10: Start the app with PM2 (local)
       - name: Start the app using PM2
         run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@13.49.57.246 "cd /var/www/myapp/tamma && pm2 start app.js --name 'my-app' --env production"
+          ssh -o StrictHostKeyChecking=no ubuntu@13.49.57.246 "cd /var/www/myapp/tamma && ./node_modules/.bin/pm2 start app.js --name 'my-app' --env production"
