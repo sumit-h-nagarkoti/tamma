@@ -1,33 +1,36 @@
-name: Deploy to EC2
+name: Deploy Node.js App to EC2
 
 on:
   push:
     branches:
-      - main  # Trigger deployment on push to the main branch
+      - main  # Trigger deployment on pushing to the 'main' branch
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      # Checkout the repository
+      - name: Checkout Repository
         uses: actions/checkout@v2
 
+      # Set up SSH
       - name: Set up SSH
         uses: webfactory/ssh-agent@v0.5.3
         with:
-          ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+          ssh-private-key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}  # SSH private key as GitHub Secret
 
-      - name: Add EC2 host to known hosts
+      # Install dependencies (Node.js, npm)
+      - name: Install Dependencies
         run: |
-          ssh-keyscan -H 13.61.188.176 >> ~/.ssh/known_hosts
+          curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+          source ~/.bashrc
+          nvm install node
+          nvm use node
+          npm install
 
+      # Deploy to EC2 instance
       - name: Deploy to EC2
         run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@13.61.188.176 << 'EOF'
-            cd /path/to/your/app
-            git pull origin main
-            npm install
-            pm2 restart app.js || pm2 start app.js
-            pm2 save
-          EOF
+          ssh -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_PUBLIC_IP }} "cd /path/to/your/app && git pull origin main && npm install && pm2 restart app.js"
+
