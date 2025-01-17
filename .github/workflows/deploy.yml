@@ -24,40 +24,41 @@ jobs:
       - name: List repository files
         run: |
           ls -R
-      
+
       # Step 4: Check if 'myapp_old' exists and delete it if found.
       - name: Check and delete myapp_old folder if exists
         run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@13.51.167.110 "if [ -d '/var/www/myapp_old' ]; then sudo rm -rf /var/www/myapp_old; fi"
-      
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_Public_IP }} "if [ -d '/var/www/myapp_old' ]; then sudo rm -rf /var/www/myapp_old; fi"
+
       # Step 5: Move 'myapp' folder to 'myapp_old' folder
       - name: Move myapp to myapp_old
         run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@13.51.167.110 "if [ -d '/var/www/myapp' ]; then sudo mv /var/www/myapp /var/www/myapp_old; fi"
-      
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_Public_IP }} "if [ -d '/var/www/myapp' ]; then sudo mv /var/www/myapp /var/www/myapp_old; fi"
+
       # Step 6: Create new 'myapp' folder
       - name: Create new myapp folder
         run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@13.51.167.110 "sudo mkdir -p /var/www/myapp && sudo chown -R ubuntu:ubuntu /var/www/myapp"
-      
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_Public_IP }} "sudo mkdir -p /var/www/myapp && sudo chown -R ubuntu:ubuntu /var/www/myapp"
+
       # Step 7: Clone the repository into the 'myapp' folder
       - name: Clone repository into myapp folder
         run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@13.51.167.110 "cd /var/www/myapp && git clone https://github.com/sumit-h-nagarkoti/tamma.git"
-       
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_Public_IP }} "cd /var/www/myapp && git clone https://github.com/sumit-h-nagarkoti/tamma.git"
+
        # Step 8: Install Node.js and PM2
       - name: Install Node.js and PM2 
         run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@13.51.167.110 "curl -sL https://deb.nodesource.com/setup_16.x | sudo -E bash -"
-          ssh -o StrictHostKeyChecking=no ubuntu@13.51.167.110 "sudo apt-get install -y nodejs"
-          ssh -o StrictHostKeyChecking=no ubuntu@13.51.167.110 "cd /var/www/myapp/tamma && npm install pm2 --save && npm install"
-       
+          # ssh -o StrictHostKeyChecking=no ubuntu@13.49.57.246 "curl -sL https://deb.nodesource.com/setup_16.x | sudo -E bash -"
+           # ssh -o StrictHostKeyChecking=no ubuntu@13.49.57.246 "sudo apt-get install -y nodejs"
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_Public_IP }} "cd /var/www/myapp/tamma && npm install pm2 --save && npm install"
+
+
        # Step 9: Stop the app using PM2
       - name: Stop the app using PM2
         run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@13.51.167.110 "cd /var/www/myapp/tamma && pm2 stop my-app || true"
-      
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_Public_IP }} "cd /var/www/myapp/tamma && pm2 stop my-app || true"
+
       # Step 10: Start the app with PM2 (local)
       - name: Start the app using PM2
         run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@13.51.167.110 "cd /var/www/myapp/tamma && pm2 start app.js --name 'my-app' --env production"
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_Public_IP }} "cd /var/www/myapp/tamma && pm2 start app.js --name 'my-app' --env production"
