@@ -50,6 +50,7 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@13.48.84.30 "cd /var/www/myapp/tamma && npm install pm2 --save && npm install"
 
+          
       # Step 9: Create an S3 bucket (ensure AWS CLI is set up)
       - name: Create S3 bucket
         run: |
