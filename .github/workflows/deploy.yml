@@ -59,7 +59,7 @@ jobs:
       # Step 10: Create an S3 bucket (ensure AWS CLI is set up)
       - name: Create S3 bucket
         run: |
-          aws s3 mb s3://my-app-env-file --region us-west-2
+          aws s3 mb s3://my-app-env-file --region us-north-1
 
       # Step 11: Upload .env to S3
       - name: Upload .env to S3
