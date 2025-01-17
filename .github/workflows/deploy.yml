@@ -45,23 +45,28 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@13.48.84.30 "cd /var/www/myapp && git clone https://github.com/sumit-h-nagarkoti/tamma.git"
 
-      # Step 8: Install Node.js and PM2
-      - name: Install Node.js and PM2
+      # Step 8: Install Node.js
+      - name: Install Node.js on EC2
+        run: |
+          ssh -o StrictHostKeyChecking=no ubuntu@13.48.84.30 "curl -sL https://deb.nodesource.com/setup_16.x | sudo -E bash -"
+          ssh -o StrictHostKeyChecking=no ubuntu@13.48.84.30 "sudo apt-get install -y nodejs"
+
+      # Step 9: Install PM2 and app dependencies
+      - name: Install PM2 and app dependencies
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@13.48.84.30 "cd /var/www/myapp/tamma && npm install pm2 --save && npm install"
 
-          
-      # Step 9: Create an S3 bucket (ensure AWS CLI is set up)
+      # Step 10: Create an S3 bucket (ensure AWS CLI is set up)
       - name: Create S3 bucket
         run: |
           aws s3 mb s3://my-app-env-file --region us-west-2
 
-      # Step 10: Upload .env file to S3
+      # Step 11: Upload .env to S3
       - name: Upload .env to S3
         run: |
           aws s3 cp .env s3://my-app-env-file/.env
 
-      # Step 11: Set up S3 bucket policy to restrict access to EC2 instance
+      # Step 12: Set S3 bucket policy for EC2 access only
       - name: Set S3 bucket policy for EC2 access only
         run: |
           aws s3api put-bucket-policy --bucket my-app-env-file --policy '{
@@ -74,24 +79,24 @@ jobs:
                 "Resource": "arn:aws:s3:::my-app-env-file/.env",
                 "Condition": {
                   "StringEquals": {
-                    "aws:SourceIp": "13.49.57.246"
+                    "aws:SourceIp": "13.48.84.30"
                   }
                 }
               }
             ]
           }'
 
-      # Step 12: Download the .env file from S3 to EC2
+      # Step 13: Download the .env file from S3 to EC2
       - name: Download .env file from S3 to EC2
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@13.48.84.30 "aws s3 cp s3://my-app-env-file/.env /var/www/myapp/tamma/.env"
 
-      # Step 13: Stop the app using PM2
+      # Step 14: Stop the app using PM2
       - name: Stop the app using PM2
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@13.48.84.30 "cd /var/www/myapp/tamma && pm2 stop my-app || true"
 
-      # Step 14: Start the app with PM2
+      # Step 15: Start the app with PM2
       - name: Start the app using PM2
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@13.48.84.30 "cd /var/www/myapp/tamma && pm2 start app.js --name 'my-app' --env production"
