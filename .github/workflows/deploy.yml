@@ -61,4 +61,4 @@ jobs:
       # Step 10: Start the app with PM2 (local)
       - name: Start the app using PM2
         run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_Public_IP }} "cd /var/www/myapp/tamma && pm2 start app.js --name 'my-app' --env production"
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_Public_IP }} "cd /var/www/myapp/tamma && npx pm2 start app.js --name 'my-app' --env production"
