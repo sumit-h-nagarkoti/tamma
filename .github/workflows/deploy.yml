@@ -56,17 +56,30 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@13.48.84.30 "cd /var/www/myapp/tamma && npm install pm2 --save && npm install"
 
-      # Step 10: Create an S3 bucket (ensure AWS CLI is set up)
+      # Step 10: Install AWS CLI
+      - name: Install AWS CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y awscli
+
+      # Step 11: Configure AWS CLI
+      - name: Configure AWS CLI
+        run: |
+          aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws configure set default.region us-north-1
+
+      # Step 12: Create S3 bucket
       - name: Create S3 bucket
         run: |
           aws s3 mb s3://my-app-env-file --region us-north-1
 
-      # Step 11: Upload .env to S3
+      # Step 13: Upload .env to S3
       - name: Upload .env to S3
         run: |
           aws s3 cp .env s3://my-app-env-file/.env
 
-      # Step 12: Set S3 bucket policy for EC2 access only
+      # Step 14: Set S3 bucket policy for EC2 access only
       - name: Set S3 bucket policy for EC2 access only
         run: |
           aws s3api put-bucket-policy --bucket my-app-env-file --policy '{
@@ -86,17 +99,17 @@ jobs:
             ]
           }'
 
-      # Step 13: Download the .env file from S3 to EC2
+      # Step 15: Download the .env file from S3 to EC2
       - name: Download .env file from S3 to EC2
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@13.48.84.30 "aws s3 cp s3://my-app-env-file/.env /var/www/myapp/tamma/.env"
 
-      # Step 14: Stop the app using PM2
+      # Step 16: Stop the app using PM2
       - name: Stop the app using PM2
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@13.48.84.30 "cd /var/www/myapp/tamma && pm2 stop my-app || true"
 
-      # Step 15: Start the app with PM2
+      # Step 17: Start the app with PM2
       - name: Start the app using PM2
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@13.48.84.30 "cd /var/www/myapp/tamma && pm2 start app.js --name 'my-app' --env production"
