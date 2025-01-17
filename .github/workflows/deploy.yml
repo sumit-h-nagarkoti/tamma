@@ -50,10 +50,10 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_Public_IP }} "cd /var/www/myapp/tamma && npm install pm2 --save && npm install"
 
-      # Step 9: Copy the env file from S3 to EC2
-      - name: Copy env file from S3 to EC2
+      # Step 9: Copy env.txt file from S3 to EC2
+      - name: Copy env.txt file from S3 to EC2
         run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_Public_IP }} "aws s3 cp s3://github-s3bucket/env/var/www/myapp/tamma/env"
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_Public_IP }} "aws s3 cp s3://my-bucket/env.txt /var/www/myapp/tamma/env.txt"
 
       # Step 10: Stop the app using PM2
       - name: Stop the app using PM2
