@@ -56,7 +56,7 @@ jobs:
        # Step 9: Stop the app using PM2
       - name: Stop the app using PM2
         run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_Public_IP }} "cd /var/www/myapp/tamma && pm2 stop my-app || true"
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_Public_IP }} "cd /var/www/myapp/tamma && npx pm2 stop my-app || true"
 
       # Step 10: Start the app with PM2 (local)
       - name: Start the app using PM2
